@@ -20,8 +20,9 @@
     'use strict';
 
     // Get the current script element to read data attributes
-    const currentScript = document.currentScript || 
-        document.querySelector('script[src*="rss-widget.js"]');
+    const scripts = document.querySelectorAll('script[src*="rss-widget.js"]');
+    const currentScript = scripts[scripts.length - 1];
+
     
     if (!currentScript) {
         console.error('RSS Widget: Could not find script element');

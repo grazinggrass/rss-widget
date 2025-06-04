@@ -181,7 +181,10 @@
     async function fetchRSSFeed(url) {
         try {
             // Use a CORS proxy for cross-origin requests
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+//
+            // changed proxyurl for testing
+            // const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+            const proxyUrl = `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`;
             const response = await fetch(proxyUrl);
             
             if (!response.ok) {

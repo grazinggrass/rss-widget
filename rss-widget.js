@@ -19,19 +19,18 @@
 (function() {
     'use strict';
 
-    // Get the current script element to read data attributes
-//    const scripts = document.querySelectorAll('script[src*="rss-widget.js"]');
-     const currentScript = document.getElementById('rss-feed-widget');
+let config = null;
 
+function readConfig() {
+    const scripts = document.querySelectorAll('script[src*="rss-widget.js"]');
+    const currentScript = scripts[scripts.length - 1];
 
-    
     if (!currentScript) {
         console.error('RSS Widget: Could not find script element');
         return;
     }
 
-    // Read configuration from script attributes
-    const config = {
+    config = {
         feedUrl: currentScript.getAttribute('data-feed'),
         maxItems: parseInt(currentScript.getAttribute('data-max')) || 5,
         imageSize: parseInt(currentScript.getAttribute('data-img-size')) || 80
@@ -41,6 +40,8 @@
         console.error('RSS Widget: data-feed attribute is required');
         return;
     }
+}
+
 
     // CSS styles for the widget
     const styles = `
@@ -251,11 +252,13 @@
     // Initialize the widget when DOM is ready
     function init() {
         addStyles();
-        
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', renderWidget);
-        } else {
-            renderWidget();
+        readConfig();
+        if (config) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', renderWidget);
+            } else {
+                renderWidget();
+            }
         }
     }
 

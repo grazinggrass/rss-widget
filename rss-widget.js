@@ -21,7 +21,7 @@
 
     // Get the current script element to read data attributes
 //    const scripts = document.querySelectorAll('script[src*="rss-widget.js"]');
-     const currentScript = document.getElementById('rss-widget-script');
+     const currentScript = document.getElementById('rss-feed-widget');
 
 
     

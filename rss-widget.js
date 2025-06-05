@@ -187,14 +187,9 @@ function readConfig() {
             const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
 
             const response = await fetch(proxyUrl);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
+            const text = await response.text(); // ✅ get raw XML
             const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(data.contents, 'text/xml');
+            const xmlDoc = parser.parseFromString(text, 'text/xml');
 
             // Check for parsing errors
             const parseError = xmlDoc.querySelector('parsererror');

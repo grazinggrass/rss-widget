@@ -8,13 +8,13 @@ export default function InstallPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const accessToken = params.get('access_token');
     const locationId = params.get('location_id');
+    const accessToken = params.get('access_token');
 
-    if (accessToken && locationId) {
+    if (locationId && accessToken) {
       router.push(`/blog-selector?location_id=${locationId}&access_token=${accessToken}`);
     }
-  }, []);
+  }, [router]);
 
-  return <p className="text-center mt-20 text-gray-600">Setting up your app...</p>;
+  return <p>Redirecting to blog selector...</p>;
 }

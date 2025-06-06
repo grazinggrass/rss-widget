@@ -4,6 +4,8 @@ import { parseStringPromise } from 'xml2js';
 const FEED_URL = 'https://feeds.transistor.fm/grazing-grass-podcast';
 const GHL_TOKEN_ENDPOINT = 'https://services.leadconnectorhq.com/oauth/token';
 const GHL_POST_ENDPOINT = 'https://services.leadconnectorhq.com/v2/blogs/posts';
+const feedUrl = process.env.FEED_URL;
+
 
 async function getFeedItems(feedUrl) {
   console.log("Fetching feed:", feedUrl);

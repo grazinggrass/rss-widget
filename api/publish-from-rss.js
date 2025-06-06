@@ -5,22 +5,14 @@ const FEED_URL = 'https://feeds.transistor.fm/grazing-grass-podcast';
 const GHL_TOKEN_ENDPOINT = 'https://services.leadconnectorhq.com/oauth/token';
 const GHL_POST_ENDPOINT = 'https://services.leadconnectorhq.com/v2/blogs/posts';
 
-async function getFeedItems() {
-  console.log("Fetching RSS feed...");
-  console.log("FEED URL:", FEED_URL);
-  
-  const response = await fetch(FEED_URL);
-  const xmlText = await response.text();
-  const result = await parseStringPromise(xmlText);
+async function getFeedItems(feedUrl) {
+  console.log("Fetching feed:", feedUrl);
+  const response = await fetch(feedUrl);
+  const text = await response.text(); // get raw XML
+  console.log("RSS feed response (first 500 chars):", text.slice(0, 500));
 
-  const items = result.rss.channel[0].item;
-  const posts = items.map((item) => ({
-    title: item.title[0],
-    content: item.description[0],
-    pubDate: item.pubDate[0]
-  }));
-
-  return posts.slice(0, 1); // only latest
+  const result = await parseStringPromise(text);
+  return result.rss.channel[0].item.slice(0, 5); // limit to 5
 }
 
 async function refreshAccessToken() {

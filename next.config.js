@@ -1,8 +1,10 @@
+// next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    appDir: true, // Ensure App Router is enabled
+    appDir: true,
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
+

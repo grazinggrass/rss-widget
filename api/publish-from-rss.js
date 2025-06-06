@@ -1,26 +1,28 @@
-
 import { parseStringPromise } from 'xml2js';
 
-const FEED_URL = 'https://feeds.transistor.fm/grazing-grass-podcast';
+const FEED_URL = process.env.FEED_URL;
 const GHL_TOKEN_ENDPOINT = 'https://services.leadconnectorhq.com/oauth/token';
 const GHL_POST_ENDPOINT = 'https://services.leadconnectorhq.com/v2/blogs/posts';
-const feedUrl = process.env.FEED_URL;
 
+async function getFeedItems() {
+  if (!FEED_URL) throw new Error('Missing FEED_URL environment variable');
+  console.log("Fetching feed:", FEED_URL);
 
-async function getFeedItems(feedUrl) {
-  console.log("Fetching feed:", feedUrl);
-  const response = await fetch(feedUrl);
-  const text = await response.text(); // get raw XML
+  const response = await fetch(FEED_URL);
+  const text = await response.text();
   console.log("RSS feed response (first 500 chars):", text.slice(0, 500));
 
   const result = await parseStringPromise(text);
-  return result.rss.channel[0].item.slice(0, 5); // limit to 5
+  const items = result?.rss?.channel?.[0]?.item || [];
+
+  return items.slice(0, 5).map((item) => ({
+    title: item.title?.[0] || 'Untitled',
+    content: item.description?.[0] || 'No description available',
+  }));
 }
 
 async function refreshAccessToken() {
   console.log("Refreshing token...");
-  console.log("CLIENT_ID:", process.env.GHL_CLIENT_ID);
-  console.log("REFRESH_TOKEN:", process.env.GHL_REFRESH_TOKEN);
 
   const res = await fetch(GHL_TOKEN_ENDPOINT, {
     method: 'POST',
@@ -33,9 +35,15 @@ async function refreshAccessToken() {
     })
   });
 
-  const data = await res.json();
-  if (!data.access_token) throw new Error('Token refresh failed');
-  return data.access_token;
+  const text = await res.text();
+  try {
+    const data = JSON.parse(text);
+    if (!data.access_token) throw new Error('Token refresh failed');
+    return data.access_token;
+  } catch (err) {
+    console.error("Token refresh response:", text);
+    throw new Error('Failed to parse token refresh response');
+  }
 }
 
 async function publishToGHL(blog, accessToken) {

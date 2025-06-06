@@ -1,16 +1,18 @@
-// GHL Blog Selector Settings Page with Auto Menu Link Install + Feedback + Redirect
+// GHL Blog Selector Settings Page with Auto Menu Link Install + Feedback + Redirect + Spinner + Style Enhancements
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2 } from 'lucide-react';
 
 export default function GhlBlogSelector() {
   const [blogs, setBlogs] = useState([]);
   const [selectedBlogId, setSelectedBlogId] = useState(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const router = useRouter();
 
@@ -44,7 +46,6 @@ export default function GhlBlogSelector() {
         const data = await res.json();
         setBlogs(data.blogs || []);
 
-        // Automatically install menu link on first load
         await fetch('/api/install-menu', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -66,6 +67,7 @@ export default function GhlBlogSelector() {
 
   async function handleSave() {
     try {
+      setSaving(true);
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -82,6 +84,8 @@ export default function GhlBlogSelector() {
       } else setError('Failed to save blog selection.');
     } catch (err) {
       setError('Failed to save blog selection.');
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -100,12 +104,14 @@ export default function GhlBlogSelector() {
   }, [selectedBlogId]);
 
   return (
-    <Card className="max-w-md mx-auto mt-8 p-4">
+    <Card className="max-w-md mx-auto mt-12 p-6 shadow-xl rounded-2xl">
       <CardContent>
-        <Label>Select a blog to auto-post to:</Label>
-        {error && <p className="text-red-600 mt-2">{error}</p>}
+        <Label className="block text-lg font-medium mb-2">Select a blog to auto-post to:</Label>
+        {error && <p className="text-red-600 mt-2 text-sm">{error}</p>}
         {loading ? (
-          <p className="mt-2">Loading blogs...</p>
+          <div className="flex items-center space-x-2 text-sm text-gray-500 mt-4">
+            <Loader2 className="animate-spin" size={20} /> <span>Loading blogs...</span>
+          </div>
         ) : (
           <Select value={selectedBlogId || ''} onValueChange={(value) => {
             setSelectedBlogId(value);
@@ -121,8 +127,11 @@ export default function GhlBlogSelector() {
             </SelectContent>
           </Select>
         )}
-        <Button onClick={handleSave} disabled={!selectedBlogId}>Save</Button>
-        {success && <p className="text-green-600 mt-2">Blog saved successfully! Redirecting...</p>}
+        <Button onClick={handleSave} disabled={!selectedBlogId || saving} className="w-full">
+          {saving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+          {saving ? 'Saving...' : 'Save'}
+        </Button>
+        {success && <p className="text-green-600 mt-3 text-sm">Blog saved successfully! Redirecting...</p>}
       </CardContent>
     </Card>
   );

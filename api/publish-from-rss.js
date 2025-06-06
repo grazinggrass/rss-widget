@@ -36,12 +36,18 @@ async function refreshAccessToken() {
   });
 
   const text = await res.text();
+  console.log("Refresh token response status:", res.status);
+
+  if (!text || text.trim().length === 0) {
+    throw new Error('Empty response from token endpoint');
+  }
+
   try {
     const data = JSON.parse(text);
-    if (!data.access_token) throw new Error('Token refresh failed');
+    if (!data.access_token) throw new Error('Token refresh failed: No access token');
     return data.access_token;
   } catch (err) {
-    console.error("Token refresh response:", text);
+    console.error("❌ Failed to parse JSON response:", text);
     throw new Error('Failed to parse token refresh response');
   }
 }

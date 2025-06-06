@@ -1,7 +1,6 @@
-// GHL Blog Selector Settings Page with Auto Menu Link Install
-// Loads blog list, allows user to select one, saves it, and preloads it on page load.
-
+// GHL Blog Selector Settings Page with Auto Menu Link Install + Feedback + Redirect
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ export default function GhlBlogSelector() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const router = useRouter();
 
   const locationId = new URLSearchParams(window.location.search).get('location_id');
   const accessToken = new URLSearchParams(window.location.search).get('access_token');
@@ -75,6 +75,10 @@ export default function GhlBlogSelector() {
         localStorage.setItem('selected_blog_id', selectedBlogId);
         globalThis.__GHL_SELECTED_BLOG_ID__ = selectedBlogId;
         setSuccess(true);
+
+        setTimeout(() => {
+          router.push(`https://app.gohighlevel.com/locations/${locationId}/marketing/blogs`);
+        }, 1500);
       } else setError('Failed to save blog selection.');
     } catch (err) {
       setError('Failed to save blog selection.');
@@ -89,7 +93,6 @@ export default function GhlBlogSelector() {
     }
   }, []);
 
-  // Automatically set the blog ID for publishing
   useEffect(() => {
     if (selectedBlogId) {
       globalThis.__GHL_SELECTED_BLOG_ID__ = selectedBlogId;
@@ -119,7 +122,7 @@ export default function GhlBlogSelector() {
           </Select>
         )}
         <Button onClick={handleSave} disabled={!selectedBlogId}>Save</Button>
-        {success && <p className="text-green-600 mt-2">Blog saved successfully!</p>}
+        {success && <p className="text-green-600 mt-2">Blog saved successfully! Redirecting...</p>}
       </CardContent>
     </Card>
   );

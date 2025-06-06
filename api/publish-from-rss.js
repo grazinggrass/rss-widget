@@ -6,6 +6,9 @@ const GHL_TOKEN_ENDPOINT = 'https://services.leadconnectorhq.com/oauth/token';
 const GHL_POST_ENDPOINT = 'https://services.leadconnectorhq.com/v2/blogs/posts';
 
 async function getFeedItems() {
+  console.log("Fetching RSS feed...");
+  console.log("FEED URL:", FEED_URL);
+  
   const response = await fetch(FEED_URL);
   const xmlText = await response.text();
   const result = await parseStringPromise(xmlText);
@@ -21,6 +24,10 @@ async function getFeedItems() {
 }
 
 async function refreshAccessToken() {
+  console.log("Refreshing token...");
+  console.log("CLIENT_ID:", process.env.GHL_CLIENT_ID);
+  console.log("REFRESH_TOKEN:", process.env.GHL_REFRESH_TOKEN);
+
   const res = await fetch(GHL_TOKEN_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -58,6 +65,8 @@ async function publishToGHL(blog, accessToken) {
 }
 
 export default async function handler(req, res) {
+  console.log("Received request to publish blog...");
+
   try {
     const accessToken = await refreshAccessToken();
     const blogs = await getFeedItems();
@@ -68,8 +77,10 @@ export default async function handler(req, res) {
       results.push(posted);
     }
 
+    console.log("Blog post results:", results);
     res.status(200).json({ status: 'success', results });
   } catch (err) {
+    console.error("ERROR:", err);
     res.status(500).json({ status: 'error', message: err.message });
   }
 }

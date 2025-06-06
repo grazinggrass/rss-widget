@@ -1,3 +1,4 @@
+
 import { parseStringPromise } from 'xml2js';
 
 const FEED_URL = process.env.FEED_URL;
@@ -36,39 +37,54 @@ async function refreshAccessToken() {
   });
 
   const text = await res.text();
-  console.log("Refresh token response status:", res.status);
-
-  if (!text || text.trim().length === 0) {
-    throw new Error('Empty response from token endpoint');
-  }
-
   try {
     const data = JSON.parse(text);
-    if (!data.access_token) throw new Error('Token refresh failed: No access token');
+    if (!data.access_token) throw new Error('Token refresh failed');
     return data.access_token;
   } catch (err) {
-    console.error("❌ Failed to parse JSON response:", text);
+    console.error("Token refresh response:", text);
     throw new Error('Failed to parse token refresh response');
   }
 }
 
 async function publishToGHL(blog, accessToken) {
+  console.log("Sending blog post:", blog.title);
+  const postBody = {
+    location_id: process.env.GHL_LOCATION_ID,
+    title: blog.title,
+    content: blog.content,
+    status: 'PUBLISHED'
+  };
+
+  console.log("Post body:", JSON.stringify(postBody));
+
   const res = await fetch(GHL_POST_ENDPOINT, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      location_id: process.env.GHL_LOCATION_ID,
-      title: blog.title,
-      content: blog.content,
-      status: 'PUBLISHED'
-    })
+    body: JSON.stringify(postBody)
   });
 
-  const result = await res.json();
-  if (res.status >= 400) throw new Error(result.message || 'Blog post failed');
+  const text = await res.text();
+
+  if (!text) {
+    throw new Error('Empty response from GHL when publishing blog');
+  }
+
+  let result;
+  try {
+    result = JSON.parse(text);
+  } catch (err) {
+    console.error("Invalid JSON from GHL response:", text);
+    throw new Error('Failed to parse GHL response as JSON');
+  }
+
+  if (res.status >= 400) {
+    throw new Error(result.message || 'Blog post failed');
+  }
+
   return result;
 }
 

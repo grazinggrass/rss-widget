@@ -1,5 +1,5 @@
 
-import fetch from 'node-fetch';
+import { parseStringPromise } from 'xml2js';
 
 const FEED_URL = 'https://feeds.transistor.fm/grazing-grass-podcast';
 const GHL_TOKEN_ENDPOINT = 'https://services.leadconnectorhq.com/oauth/token';
@@ -7,21 +7,17 @@ const GHL_POST_ENDPOINT = 'https://services.leadconnectorhq.com/v2/blogs/posts';
 
 async function getFeedItems() {
   const response = await fetch(FEED_URL);
-  const text = await response.text();
-  const parser = new DOMParser();
-  const xml = parser.parseFromString(text, 'text/xml');
-  const items = xml.querySelectorAll('item');
-  const parsedItems = [];
+  const xmlText = await response.text();
+  const result = await parseStringPromise(xmlText);
 
-  items.forEach(item => {
-    parsedItems.push({
-      title: item.querySelector('title')?.textContent,
-      content: item.querySelector('description')?.textContent,
-      pubDate: item.querySelector('pubDate')?.textContent
-    });
-  });
+  const items = result.rss.channel[0].item;
+  const posts = items.map((item) => ({
+    title: item.title[0],
+    content: item.description[0],
+    pubDate: item.pubDate[0]
+  }));
 
-  return parsedItems.slice(0, 1); // Only publish the most recent post for demo
+  return posts.slice(0, 1); // only latest
 }
 
 async function refreshAccessToken() {
@@ -45,7 +41,7 @@ async function publishToGHL(blog, accessToken) {
   const res = await fetch(GHL_POST_ENDPOINT, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
